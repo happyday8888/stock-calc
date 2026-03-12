@@ -46,11 +46,11 @@
 
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">買入價格 (元)</label>
-                            <input type="number" id="buyPrice" placeholder="請輸入成交價" step="0.01" class="w-full border-2 border-blue-100 p-2 rounded mt-1 outline-none focus:border-blue-400 transition bg-blue-50/30">
+                            <input type="number" id="buyPrice" placeholder="請輸入成交價" class="w-full border-2 border-blue-100 p-2 rounded mt-1 outline-none focus:border-blue-400 transition bg-blue-50/30">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-orange-600 uppercase">自定義賣出價 (元)</label>
-                            <input type="number" id="targetSellPrice" placeholder="輸入特定價位" step="0.01" class="w-full border-2 border-orange-100 p-2 rounded mt-1 outline-none focus:border-orange-400 bg-orange-50 transition">
+                            <input type="number" id="targetSellPrice" placeholder="輸入特定價位" class="w-full border-2 border-orange-100 p-2 rounded mt-1 outline-none focus:border-orange-400 bg-orange-50 transition">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">交易股數 (股)</label>
@@ -144,7 +144,38 @@
             }
         }
 
+        // 台股升降單位規則
+        function getTickSize(p, type) {
+            const price = parseFloat(p);
+            if (isNaN(price) || price <= 0) return 0.01;
+            if (type === 'etf') {
+                return price < 50 ? 0.01 : 0.05;
+            } else {
+                if (price < 10) return 0.01;
+                if (price < 50) return 0.05;
+                if (price < 100) return 0.1;
+                if (price < 500) return 0.5;
+                if (price < 1000) return 1.0;
+                return 5.0;
+            }
+        }
+
+        function updateInputStep() {
+            const bInput = document.getElementById('buyPrice');
+            const tInput = document.getElementById('targetSellPrice');
+            const type = document.getElementById('tradeType').value;
+            
+            // 根據當前輸入的數值，動態調整輸入框的跳動單位 (Step)
+            const bTick = getTickSize(bInput.value || 0, type);
+            const tTick = getTickSize(tInput.value || 0, type);
+            
+            bInput.step = bTick;
+            tInput.step = tTick;
+        }
+
         function calculate() {
+            updateInputStep(); // 每次輸入時先更新 Step 屬性
+
             const buyPrice = parseFloat(document.getElementById('buyPrice').value);
             const targetSellPrice = parseFloat(document.getElementById('targetSellPrice').value);
             const shares = parseInt(document.getElementById('buyShares').value);
@@ -187,6 +218,7 @@
                 const profit = (sAmount - sFee - sTax) - totalInvestmentBase;
                 const roi = (profit / totalInvestmentBase) * 100;
                 const colorClass = profit >= 0 ? 'profit-red' : 'loss-green';
+                
                 return `
                     <tr class="${customClass} hover:bg-gray-50 transition">
                         <td class="p-4 font-mono font-bold">${sPrice.toFixed(2)}</td>
@@ -202,9 +234,22 @@
 
             if (!isNaN(targetSellPrice) && targetSellPrice > 0) tableBody.innerHTML += createRow(targetSellPrice, "bg-orange-50");
             
+            // 真實跳檔表格邏輯
             for (let i = -5; i <= 5; i++) {
-                let sPrice = buyPrice * (1 + i * 0.005);
-                tableBody.innerHTML += createRow(sPrice, (i === 0) ? "bg-yellow-100" : "");
+                let currentPrice = buyPrice;
+                let steps = Math.abs(i);
+                let direction = i > 0 ? 1 : -1;
+                
+                for (let s = 0; s < steps; s++) {
+                    if (direction === -1) {
+                        currentPrice -= getTickSize(currentPrice - 0.0001, tradeType);
+                    } else {
+                        currentPrice += getTickSize(currentPrice, tradeType);
+                    }
+                }
+                
+                currentPrice = Math.round(currentPrice * 100) / 100;
+                tableBody.innerHTML += createRow(currentPrice, (i === 0) ? "bg-yellow-100" : "");
             }
         }
 
