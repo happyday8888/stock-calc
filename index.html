@@ -105,6 +105,7 @@
                         請於左側輸入「買入價格」開始試算
                     </div>
                 </div>
+                <p class="mt-3 text-xs text-gray-500 text-left">※ 試算結果僅供參考，實際損益請以券商對帳單為準</p>
             </div>
         </div>
     </div>
@@ -121,7 +122,7 @@
         function loadSettings() {
             const savedDiscount = localStorage.getItem('stock_discount_v2'); 
             const savedMinFee = localStorage.getItem('stock_minFee');
-            const savedTradeType = localStorage.getItem('stock_tradeType'); // 新增
+            const savedTradeType = localStorage.getItem('stock_tradeType'); 
             if (savedDiscount !== null) document.getElementById('discount').value = savedDiscount;
             if (savedMinFee !== null) document.getElementById('minFee').value = savedMinFee;
             if (savedTradeType !== null) document.getElementById('tradeType').value = savedTradeType;
@@ -130,7 +131,7 @@
         function saveSettings() {
             localStorage.setItem('stock_discount_v2', document.getElementById('discount').value);
             localStorage.setItem('stock_minFee', document.getElementById('minFee').value);
-            localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value); // 新增
+            localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value); 
             const toast = document.getElementById('save-toast');
             toast.style.opacity = '1';
             setTimeout(() => { toast.style.opacity = '0'; }, 2000);
@@ -151,7 +152,7 @@
             const discountFactor = discountValue * 0.1; 
             const minFee = parseInt(document.getElementById('minFee').value);
             const feeMethod = document.getElementById('feeMethod').value;
-            const tradeType = document.getElementById('tradeType').value; // 新增
+            const tradeType = document.getElementById('tradeType').value; 
             const emptyState = document.getElementById('empty-state');
             const tableBody = document.getElementById('tableBody');
 
@@ -163,7 +164,6 @@
                 emptyState.style.display = 'none';
             }
 
-            // 判斷稅率
             let taxRate = 0.003;
             if (tradeType === 'dayTrade') taxRate = 0.0015;
             if (tradeType === 'etf') taxRate = 0.001;
@@ -183,7 +183,7 @@
                 if (isNaN(sPrice) || sPrice <= 0) return "";
                 const sAmount = sPrice * shares;
                 const sFee = processFee(sAmount);
-                const sTax = Math.floor(sAmount * taxRate); // 根據選擇的類別計算稅
+                const sTax = Math.floor(sAmount * taxRate); 
                 const profit = (sAmount - sFee - sTax) - totalInvestmentBase;
                 const roi = (profit / totalInvestmentBase) * 100;
                 const colorClass = profit >= 0 ? 'profit-red' : 'loss-green';
@@ -211,7 +211,7 @@
         document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculate));
         document.getElementById('discount').addEventListener('change', saveSettings);
         document.getElementById('minFee').addEventListener('change', saveSettings);
-        document.getElementById('tradeType').addEventListener('change', saveSettings); // 新增監聽
+        document.getElementById('tradeType').addEventListener('change', saveSettings); 
         window.onload = () => { loadSettings(); calculate(); };
     </script>
 </body>
