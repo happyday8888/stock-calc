@@ -13,12 +13,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // 強制 Tailwind 使用 class 模式切換深色背景
-        tailwind.config = {
-            darkMode: 'class',
-        }
-
-        // 初始化主題：在畫面渲染前執行，防止白色閃爍
+        tailwind.config = { darkMode: 'class' }
         function applyTheme() {
             if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
@@ -33,56 +28,14 @@
         .loss-green { color: #2d8a3c; font-weight: bold; }
         .dark .profit-red { color: #ff6b6b; }
         .dark .loss-green { color: #51cf66; }
-        
         .table-container { overflow-x: auto; }
         #save-toast { transition: opacity 0.5s; opacity: 0; pointer-events: none; }
-
-        /* PWA 橫幅動畫 */
-        #pwa-banner {
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateY(-20px);
-            opacity: 0;
-            display: none;
-        }
-        #pwa-banner.show {
-            display: flex;
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        /* Tooltip 工具提示樣式 */
-        .tooltip-container {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip-text {
-            visibility: hidden;
-            width: 80px;
-            background-color: #334155;
-            color: #fff;
-            text-align: center;
-            border-radius: 4px;
-            padding: 4px 0;
-            position: absolute;
-            z-index: 50;
-            top: 115%; 
-            left: 50%;
-            margin-left: -40px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            font-size: 11px;
-            font-weight: bold;
-            pointer-events: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .dark .tooltip-text {
-            background-color: #475569;
-            border: 1px solid #64748b;
-        }
-        .tooltip-container:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
+        #pwa-banner { transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(-20px); opacity: 0; display: none; }
+        #pwa-banner.show { display: flex; transform: translateY(0); opacity: 1; }
+        .tooltip-container { position: relative; display: inline-block; }
+        .tooltip-text { visibility: hidden; width: 80px; background-color: #334155; color: #fff; text-align: center; border-radius: 4px; padding: 4px 0; position: absolute; z-index: 50; top: 115%; left: 50%; margin-left: -40px; opacity: 0; transition: opacity 0.2s; font-size: 11px; font-weight: bold; pointer-events: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .dark .tooltip-text { background-color: #475569; border: 1px solid #64748b; }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-slate-900 p-4 md:p-8 text-slate-700 dark:text-slate-300 transition-colors duration-300">
@@ -93,9 +46,7 @@
                 <span class="text-[#92400e] dark:text-amber-200 text-sm md:text-base">💡 本網站支援 PWA 技術，加入主畫面後，即可作為 App 使用。</span>
             </div>
             <button onclick="closePwaBanner()" class="text-[#b45309] dark:text-amber-400 hover:text-[#92400e] p-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
 
@@ -103,7 +54,6 @@
             <h1 class="text-xl font-bold">📊 股票交易試算器</h1>
             <div class="flex items-center gap-4">
                 <span id="save-toast" class="text-xs bg-green-500 text-white px-2 py-1 rounded">設定已自動儲存</span>
-                
                 <div class="tooltip-container">
                     <button type="button" onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-slate-700 dark:hover:bg-slate-800 transition-colors focus:outline-none border border-slate-600">
                         <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
@@ -115,12 +65,12 @@
 
         <div class="flex flex-col lg:flex-row gap-6">
             <div class="w-full lg:w-80 flex-shrink-0">
-                <div class="bg-white dark:bg-slate-800 p-6 shadow-md rounded-xl border-t-4 border-blue-500 sticky top-8 transition-colors">
+                <div class="bg-white dark:bg-slate-800 p-6 shadow-md rounded-xl border-t-4 border-blue-500 sticky top-8">
                     <h2 class="font-bold text-gray-700 dark:text-slate-200 mb-6 border-l-4 border-blue-500 pl-2 text-lg">交易參數</h2>
                     <div class="space-y-5">
                         <div>
                             <label class="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase">交易類別</label>
-                            <select id="tradeType" class="w-full border-2 border-blue-100 dark:border-slate-700 p-2 rounded mt-1 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-blue-400 transition-colors">
+                            <select id="tradeType" class="w-full border-2 border-blue-100 dark:border-slate-700 p-2 rounded mt-1 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-blue-400">
                                 <option value="stock">股票</option>
                                 <option value="dayTrade">股票當沖</option>
                                 <option value="etf">ETF</option>
@@ -128,34 +78,32 @@
                         </div>
                         <div>
                             <label class="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase">買入價格 (元)</label>
-                            <input type="number" id="buyPrice" placeholder="請輸入成交價" class="w-full border-2 border-blue-100 dark:border-slate-700 p-2 rounded mt-1 outline-none focus:border-blue-400 transition bg-blue-50/30 dark:bg-blue-900/10 dark:text-white">
+                            <input type="number" id="buyPrice" placeholder="請輸入成交價" class="w-full border-2 border-blue-100 dark:border-slate-700 p-2 rounded mt-1 outline-none focus:border-blue-400 bg-blue-50/30 dark:bg-blue-900/10 dark:text-white">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase">自定義賣出價 (元)</label>
-                            <input type="number" id="targetSellPrice" placeholder="輸入特定價位" class="w-full border-2 border-orange-100 dark:border-slate-700 p-2 rounded mt-1 outline-none focus:border-orange-400 bg-orange-50 dark:bg-orange-900/10 transition dark:text-white">
+                            <input type="number" id="targetSellPrice" placeholder="輸入特定價位" class="w-full border-2 border-orange-100 dark:border-slate-700 p-2 rounded mt-1 outline-none focus:border-orange-400 bg-orange-50 dark:bg-orange-900/10 dark:text-white">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase">交易股數 (股)</label>
-                            <input type="number" id="buyShares" value="1000" class="w-full border-2 border-gray-100 dark:border-slate-700 p-2 rounded mt-1 outline-none focus:border-blue-400 transition dark:bg-slate-700 dark:text-white">
+                            <input type="number" id="buyShares" value="1000" class="w-full border-2 border-gray-100 dark:border-slate-700 p-2 rounded mt-1 dark:bg-slate-700 dark:text-white">
                         </div>
-                        
                         <div class="bg-gray-50 dark:bg-slate-900/50 p-3 rounded-lg border border-gray-100 dark:border-slate-700">
                             <p class="text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-2">券商設定 (自動記憶)</p>
                             <div class="grid grid-cols-2 gap-2 text-[10px]">
                                 <div>
                                     <label class="font-bold text-gray-500 dark:text-slate-400 uppercase">手續費折扣 (折)</label>
-                                    <input type="number" id="discount" value="6" step="0.1" class="w-full border border-gray-200 dark:border-slate-700 p-2 rounded mt-1 bg-white dark:bg-slate-700 focus:border-blue-400 outline-none dark:text-white">
+                                    <input type="number" id="discount" value="6" step="0.1" class="w-full border border-gray-200 dark:border-slate-700 p-2 rounded mt-1 dark:bg-slate-700 dark:text-white">
                                 </div>
                                 <div>
                                     <label class="font-bold text-gray-500 dark:text-slate-400 uppercase">最低收費 (元)</label>
-                                    <input type="number" id="minFee" value="20" class="w-full border border-gray-200 dark:border-slate-700 p-2 rounded mt-1 bg-white dark:bg-slate-700 focus:border-blue-400 outline-none dark:text-white">
+                                    <input type="number" id="minFee" value="20" class="w-full border border-gray-200 dark:border-slate-700 p-2 rounded mt-1 dark:bg-slate-700 dark:text-white">
                                 </div>
                             </div>
                         </div>
-
                         <div>
                             <label class="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase">手續費計法</label>
-                            <select id="feeMethod" class="w-full border border-gray-200 dark:border-slate-700 p-2 rounded mt-1 bg-white dark:bg-slate-700 outline-none focus:border-blue-400 dark:text-white">
+                            <select id="feeMethod" class="w-full border border-gray-200 dark:border-slate-700 p-2 rounded mt-1 bg-white dark:bg-slate-700 dark:text-white">
                                 <option value="floor" selected>無條件捨去</option>
                                 <option value="round">四捨五入</option>
                             </select>
@@ -172,29 +120,26 @@
                     <table class="w-full text-center text-sm min-w-[800px]">
                         <thead class="bg-slate-700 dark:bg-slate-950 text-white border-b dark:border-slate-700">
                             <tr>
-                                <th class="p-4 font-medium border-r border-slate-600 dark:border-slate-800">賣出價格</th>
-                                <th class="p-4 font-medium border-r border-slate-600 dark:border-slate-800">損益金額</th>
-                                <th class="p-4 font-medium border-r border-slate-600 dark:border-slate-800">報酬率</th>
-                                <th class="p-4 font-medium border-r border-slate-600 dark:border-slate-800">買入手續</th>
-                                <th class="p-4 font-medium border-r border-slate-600 dark:border-slate-800">賣出手續</th>
-                                <th class="p-4 font-medium border-r border-slate-600 dark:border-slate-800">證交稅</th>
+                                <th class="p-4 font-medium border-r border-slate-600">賣出價格</th>
+                                <th class="p-4 font-medium border-r border-slate-600">損益金額</th>
+                                <th class="p-4 font-medium border-r border-slate-600">報酬率</th>
+                                <th class="p-4 font-medium border-r border-slate-600">買入手續</th>
+                                <th class="p-4 font-medium border-r border-slate-600">賣出手續</th>
+                                <th class="p-4 font-medium border-r border-slate-600">證交稅</th>
                                 <th class="p-4 font-medium">投資成本</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-gray-100 dark:divide-slate-700"></tbody>
                     </table>
-                    <div id="empty-state" class="p-20 text-center text-gray-400 dark:text-slate-500">
-                        請於左側輸入「買入價格」開始試算
-                    </div>
+                    <div id="empty-state" class="p-20 text-center text-gray-400 dark:text-slate-500">請輸入「買入價格」開始試算</div>
                 </div>
-                <p class="mt-3 text-xs text-gray-500 dark:text-slate-400 text-left">※ 試算結果僅供參考，實際損益請以券商對帳單為準。</p>
                 <p class="mt-8 text-xs text-gray-400 dark:text-slate-600 text-center">Copyright © 2026 Nick Hsu</p>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 核心模式切換與圖示更新 ---
+        // --- 模式切換邏輯 ---
         function updateIcon() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
@@ -207,161 +152,125 @@
         }
 
         function toggleDarkMode() {
-            const html = document.documentElement;
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            } else {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            }
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             updateIcon();
         }
 
-        // --- PWA 相關邏輯 ---
+        // --- PWA 橫幅邏輯 ---
         function closePwaBanner() {
-            const banner = document.getElementById('pwa-banner');
-            banner.style.opacity = '0';
-            banner.style.transform = 'translateY(-20px)';
-            setTimeout(() => { banner.style.display = 'none'; }, 600);
+            document.getElementById('pwa-banner').style.display = 'none';
             localStorage.setItem('pwa_banner_closed', 'true');
         }
 
         function checkPwaBanner() {
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-            const isClosed = localStorage.getItem('pwa_banner_closed') === 'true';
-            if (!isClosed && !isStandalone) {
-                setTimeout(() => {
-                    const banner = document.getElementById('pwa-banner');
-                    if(banner) {
-                        banner.style.display = 'flex';
-                        setTimeout(() => { banner.classList.add('show'); }, 50);
-                    }
-                }, 3000); 
+            if (localStorage.getItem('pwa_banner_closed') !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) {
+                setTimeout(() => { 
+                    const b = document.getElementById('pwa-banner');
+                    b.style.display = 'flex'; 
+                    setTimeout(() => b.classList.add('show'), 50);
+                }, 3000);
             }
         }
 
-        // --- 設定記憶功能 ---
-        function loadSettings() {
-            const savedDiscount = localStorage.getItem('stock_discount_v2'); 
-            const savedMinFee = localStorage.getItem('stock_minFee');
-            const savedTradeType = localStorage.getItem('stock_tradeType'); 
-            if (savedDiscount !== null) document.getElementById('discount').value = savedDiscount;
-            if (savedMinFee !== null) document.getElementById('minFee').value = savedMinFee;
-            if (savedTradeType !== null) document.getElementById('tradeType').value = savedTradeType;
-        }
-
-        function saveSettings() {
-            localStorage.setItem('stock_discount_v2', document.getElementById('discount').value);
-            localStorage.setItem('stock_minFee', document.getElementById('minFee').value);
-            localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value); 
-            const toast = document.getElementById('save-toast');
-            toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 2000);
-        }
-
-        function clearStorage() {
-            if(confirm('恢復預設？這將會清除你儲存的手續費與折扣設定。')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        // --- 核心試算邏輯 ---
+        // --- 核心計算邏輯 (簡化顯示) ---
         function getTickSize(p, type) {
             const price = parseFloat(p);
-            if (isNaN(price) || price <= 0) return 0.01;
             if (type === 'etf') return price < 50 ? 0.01 : 0.05;
-            if (price < 10) return 0.01;
-            if (price < 50) return 0.05;
-            if (price < 100) return 0.1;
-            if (price < 500) return 0.5;
-            if (price < 1000) return 1.0;
-            return 5.0;
+            if (price < 10) return 0.01; if (price < 50) return 0.05; if (price < 100) return 0.1;
+            if (price < 500) return 0.5; if (price < 1000) return 1.0; return 5.0;
         }
 
         function calculate() {
             const buyPrice = parseFloat(document.getElementById('buyPrice').value);
             const targetSellPrice = parseFloat(document.getElementById('targetSellPrice').value);
             const shares = parseInt(document.getElementById('buyShares').value);
-            const discountValue = parseFloat(document.getElementById('discount').value);
-            const discountFactor = discountValue * 0.1; 
+            const discountFactor = parseFloat(document.getElementById('discount').value) * 0.1;
             const minFee = parseInt(document.getElementById('minFee').value);
             const feeMethod = document.getElementById('feeMethod').value;
-            const tradeType = document.getElementById('tradeType').value; 
-            const emptyState = document.getElementById('empty-state');
+            const tradeType = document.getElementById('tradeType').value;
             const tableBody = document.getElementById('tableBody');
 
-            if(!buyPrice || isNaN(buyPrice)) {
-                emptyState.style.display = 'block';
-                tableBody.innerHTML = '';
-                return;
-            }
-            emptyState.style.display = 'none';
+            if(!buyPrice || isNaN(buyPrice)) { document.getElementById('empty-state').style.display = 'block'; tableBody.innerHTML = ''; return; }
+            document.getElementById('empty-state').style.display = 'none';
 
-            // 稅率判定：個股 0.3%, 當沖 0.15%, ETF 0.1%
             let taxRate = (tradeType === 'dayTrade') ? 0.0015 : (tradeType === 'etf' ? 0.001 : 0.003);
-            
-            function processFee(amount) {
-                const rawFee = amount * 0.001425 * discountFactor;
-                let finalFee = (feeMethod === 'floor') ? Math.floor(rawFee) : Math.round(rawFee);
-                return Math.max(minFee, finalFee);
-            }
+            const processFee = (amt) => {
+                let f = (feeMethod === 'floor') ? Math.floor(amt * 0.001425 * discountFactor) : Math.round(amt * 0.001425 * discountFactor);
+                return Math.max(minFee, f);
+            };
 
-            const buyRaw = buyPrice * shares;
-            const buyFee = processFee(buyRaw);
-            const totalInvestmentBase = buyRaw + buyFee;
+            const buyFee = processFee(buyPrice * shares);
+            const totalCost = (buyPrice * shares) + buyFee;
             tableBody.innerHTML = '';
 
-            function createRow(sPrice, customClass = "") {
-                if (isNaN(sPrice) || sPrice <= 0) return "";
-                const sAmount = sPrice * shares;
-                const sFee = processFee(sAmount);
-                const sTax = Math.floor(sAmount * taxRate); 
-                const profit = (sAmount - sFee - sTax) - totalInvestmentBase;
-                const roi = (profit / totalInvestmentBase) * 100;
-                const colorClass = profit >= 0 ? 'profit-red' : 'loss-green';
+            const createRow = (sPrice, cls = "") => {
+                if (!sPrice || sPrice <= 0) return "";
+                const sAmt = sPrice * shares;
+                const sFee = processFee(sAmt);
+                const sTax = Math.floor(sAmt * taxRate);
+                const profit = (sAmt - sFee - sTax) - totalCost;
+                const roi = (profit / totalCost) * 100;
+                const color = profit >= 0 ? 'profit-red' : 'loss-green';
+                const bg = cls === "bg-orange-50" ? "bg-orange-50 dark:bg-orange-900/20" : (cls === "bg-yellow-100" ? "bg-yellow-100 dark:bg-yellow-900/30 text-black dark:text-yellow-200" : "");
                 
-                let rowBgClass = customClass;
-                if (customClass === "bg-orange-50") rowBgClass = "bg-orange-50 dark:bg-orange-900/20";
-                if (customClass === "bg-yellow-100") rowBgClass = "bg-yellow-100 dark:bg-yellow-900/30 text-black dark:text-yellow-200";
+                return `<tr class="${bg} hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+                    <td class="p-4 font-mono font-bold">${sPrice.toFixed(2)}</td>
+                    <td class="p-4 ${color}">${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()}</td>
+                    <td class="p-4 ${color}">${roi.toFixed(2)}%</td>
+                    <td class="p-4 text-gray-400 text-xs">${buyFee}</td>
+                    <td class="p-4 text-gray-400 text-xs">${sFee}</td>
+                    <td class="p-4 text-gray-400 text-xs">${sTax.toLocaleString()}</td>
+                    <td class="p-4 text-gray-400 text-xs">${Math.round(totalCost).toLocaleString()}</td>
+                </tr>`;
+            };
 
-                return `<tr class="${rowBgClass} hover:bg-gray-50 dark:hover:bg-slate-700 transition">
-                        <td class="p-4 font-mono font-bold">${sPrice.toFixed(2)}</td>
-                        <td class="p-4 ${colorClass}">${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()}</td>
-                        <td class="p-4 ${colorClass}">${roi.toFixed(2)}%</td>
-                        <td class="p-4 text-gray-400 dark:text-slate-500 text-xs">${buyFee}</td>
-                        <td class="p-4 text-gray-400 dark:text-slate-500 text-xs">${sFee}</td>
-                        <td class="p-4 text-gray-400 dark:text-slate-500 text-xs">${sTax.toLocaleString()}</td>
-                        <td class="p-4 font-semibold text-slate-300 dark:text-slate-600 text-xs">${Math.round(totalInvestmentBase).toLocaleString()}</td>
-                    </tr>`;
-            }
-
-            // 渲染順序：1.自定義賣出價 2.買價附近的階梯報價
-            if (!isNaN(targetSellPrice) && targetSellPrice > 0) tableBody.innerHTML += createRow(targetSellPrice, "bg-orange-50");
-            
+            if (targetSellPrice > 0) tableBody.innerHTML += createRow(targetSellPrice, "bg-orange-50");
             for (let i = -5; i <= 5; i++) {
-                let currentPrice = buyPrice;
-                for (let s = 0; s < Math.abs(i); s++) {
-                    currentPrice += (i > 0) ? getTickSize(currentPrice, tradeType) : -getTickSize(currentPrice - 0.0001, tradeType);
-                }
-                currentPrice = Math.round(currentPrice * 100) / 100;
-                tableBody.innerHTML += createRow(currentPrice, (i === 0) ? "bg-yellow-100" : "");
+                let p = buyPrice;
+                for (let s = 0; s < Math.abs(i); s++) p += (i > 0) ? getTickSize(p, tradeType) : -getTickSize(p - 0.0001, tradeType);
+                tableBody.innerHTML += createRow(Math.round(p * 100) / 100, i === 0 ? "bg-yellow-100" : "");
             }
         }
 
-        // 事件監聽與初始化
+        // --- 設定存取 ---
+        function loadSettings() {
+            document.getElementById('discount').value = localStorage.getItem('stock_discount_v2') || 6;
+            document.getElementById('minFee').value = localStorage.getItem('stock_minFee') || 20;
+            document.getElementById('tradeType').value = localStorage.getItem('stock_tradeType') || 'stock';
+        }
+        function saveSettings() {
+            localStorage.setItem('stock_discount_v2', document.getElementById('discount').value);
+            localStorage.setItem('stock_minFee', document.getElementById('minFee').value);
+            localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value);
+            const t = document.getElementById('save-toast'); t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000);
+        }
+        function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
+
+        // --- Service Worker 註冊與更新偵測 ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                if (confirm('發現新版本！是否立即更新以獲得最新功能？')) {
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
+        // 啟動
         document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculate));
         document.getElementById('discount').addEventListener('change', saveSettings);
         document.getElementById('minFee').addEventListener('change', saveSettings);
-        document.getElementById('tradeType').addEventListener('change', saveSettings); 
-        
-        window.onload = () => { 
-            loadSettings(); 
-            calculate(); 
-            checkPwaBanner(); 
-            updateIcon(); 
-        };
+        document.getElementById('tradeType').addEventListener('change', saveSettings);
+        window.onload = () => { loadSettings(); calculate(); checkPwaBanner(); updateIcon(); };
     </script>
 </body>
 </html>
