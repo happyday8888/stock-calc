@@ -1,5 +1,5 @@
 // sw.js - 版本號：每次修改 HTML 或 CSS 後，改一下這個數字 (例如 1.0.1 -> 1.0.2)
-const CACHE_NAME = 'stock-calculator-v1.0.1';
+const CACHE_NAME = 'stock-calculator-v1.0.0';
 
 // 需要快取的資源清單
 const ASSETS_TO_CACHE = [
