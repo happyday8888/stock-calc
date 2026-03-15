@@ -111,7 +111,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.10
+                                System Version: v20260316.09
                             </div>
                         </div>
                     </div>
@@ -142,6 +142,7 @@
     </div>
 
     <script>
+        // --- 試算功能區 ---
         function updateIcon() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
@@ -239,31 +240,37 @@
         }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- 核心：絕對彈窗註冊邏輯 (與舊版相容) ---
+        // --- 您原本穩定的彈窗機制 (核心) ---
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swUrl = `sw.js?v=${Date.now()}`;
-                navigator.serviceWorker.register(swUrl).then(reg => {
+            window.addEventListener('load', function() {
+                // 使用時間戳繞過緩存
+                var swUrl = 'sw.js?v=' + new Date().getTime();
+                
+                navigator.serviceWorker.register(swUrl).then(function(reg) {
+                    // 主動檢查有無新版本
                     reg.update();
-                    reg.onupdatefound = () => {
-                        const newWorker = reg.installing;
-                        newWorker.onstatechange = () => {
-                            if (newWorker.state === 'installed') {
-                                // 不再判斷 controller，只要有新版就強制彈窗
-                                if (confirm('📊 發現新版工具內容！\n是否立即更新以獲得最新試算邏輯與介面調整？')) {
-                                    newWorker.postMessage('SKIP_WAITING');
+
+                    reg.onupdatefound = function() {
+                        var installingWorker = reg.installing;
+                        installingWorker.onstatechange = function() {
+                            if (installingWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // 熟悉的彈窗回來了
+                                    if (confirm('📊 發現新版工具內容！\n是否立即更新以獲得最新試算邏輯與介面調整？')) {
+                                        installingWorker.postMessage('SKIP_WAITING');
+                                    }
                                 }
                             }
                         };
                     };
                 });
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (!refreshing) {
-                        window.location.reload();
-                        refreshing = true;
-                    }
-                });
+            });
+
+            var refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                if (refreshing) return;
+                window.location.reload();
+                refreshing = true;
             });
         }
 
