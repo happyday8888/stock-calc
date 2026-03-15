@@ -111,7 +111,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.05
+                                System Version: v20260316.06
                             </div>
                         </div>
                     </div>
@@ -142,7 +142,7 @@
     </div>
 
     <script>
-        // --- 核心計算與介面邏輯 (略，維持原狀) ---
+        // --- 核心邏輯保持不變 ---
         function updateIcon() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
@@ -238,21 +238,22 @@
         }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- Service Worker 強制更新與彈窗機制 ---
+        // --- 強效 Service Worker 註冊機制 ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    // 每次載入都強制去伺服器檢查 sw.js 是否有變動
+                // 技巧：在檔名後方加入當下時間戳，確保每次啟動都去伺服器抓最新的 sw.js 代碼
+                const swUrl = `sw.js?v=${new Date().getTime()}`;
+                
+                navigator.serviceWorker.register(swUrl).then(reg => {
+                    // 主動檢查更新
                     reg.update();
 
-                    // 偵測到有新 Service Worker 在安裝
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
-                            // 下載完成 (installed) 且目前有舊版正在控制頁面
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm('📊 發現系統更新！\n\n我們已經準備好最新版本，是否立即重新載入以套用更新？')) {
-                                    // 傳送 SKIP_WAITING 指令給 SW
+                                // 這裡會跳出強制更新彈窗
+                                if (confirm('📊 發現新版工具內容！\n\n是否立即更新以獲得最新試算邏輯與介面調整？')) {
                                     newWorker.postMessage('SKIP_WAITING');
                                 }
                             }
@@ -260,7 +261,7 @@
                     });
                 });
 
-                // 監聽控制權轉移：當 SW 成功跳過等待並接管後，自動重新整理頁面
+                // 監聽控制權變動，自動重整
                 let refreshing = false;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (!refreshing) {
@@ -271,7 +272,6 @@
             });
         }
 
-        // 啟動監聽
         document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculate));
         document.getElementById('discount').addEventListener('change', saveSettings);
         document.getElementById('minFee').addEventListener('change', saveSettings);
