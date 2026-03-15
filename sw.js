@@ -1,33 +1,29 @@
 /**
  * Service Worker - 台股交易損益試算器
- * * 更新說明：
- * 每次修改 index.html 後，請務必手動修改下方的 VERSION 版本號。
- * 例如：v20260316.01 -> v20260316.02
+ * 版本號：v20260316.05 (每次更新 index.html 後，請務必增加此數字)
  */
 
-const VERSION = 'v20260316.03'; // <--- 每次上傳前改這裡
+const VERSION = 'v20260316.05'; 
 const CACHE_NAME = `stock-calculator-${VERSION}`;
 
-// 定義需要快取的資源
+// 定義需要快取的資源 (請確保這些檔案在你的 GitHub 根目錄都存在)
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
   'manifest.json',
-  'https://cdn.tailwindcss.com', // 快取外部 CSS 庫，確保離線可用
-  // 如果你有圖示，請確保檔名正確
-  'icon-512.png'
+  'https://cdn.tailwindcss.com'
 ];
 
 // --- 1. 安裝階段 (Install) ---
 self.addEventListener('install', (event) => {
-  console.log(`[Service Worker] 正在安裝版本: ${VERSION}`);
+  console.log(`[Service Worker] 正在安裝新版本: ${VERSION}`);
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] 預載入快取項目');
+      console.log('[Service Worker] 開始預載入靜態資源');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  // 不使用 self.skipWaiting()，為了配合 index.html 的更新彈窗
+  // 注意：這裡不呼叫 skipWaiting()，是為了讓使用者在 index.html 點擊彈窗後才更新
 });
 
 // --- 2. 擷取階段 (Fetch) ---
@@ -36,7 +32,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // 成功抓到網路資料，順便更新快取
+        // 成功抓到網路資料，將其複製並更新到快取中
         if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -53,9 +49,9 @@ self.addEventListener('fetch', (event) => {
 });
 
 // --- 3. 激活階段 (Activate) ---
-// 清理舊版本的快取，避免佔用使用者手機空間
+// 當新版本接管時，刪除所有舊版本的快取，釋放手機空間
 self.addEventListener('activate', (event) => {
-  console.log(`[Service Worker] 版本 ${VERSION} 已啟動`);
+  console.log(`[Service Worker] 版本 ${VERSION} 正式啟動並接管`);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -66,13 +62,18 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      // 確保新 Service Worker 立即取得頁面的控制權
+      return self.clients.claim();
+    })
   );
 });
 
-// 監聽來自 index.html 的指令，強制跳過等待 (配合彈窗點擊更新)
+// --- 4. 訊息監聽 (Message) ---
+// 接收來自 index.html 的指令
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
+    console.log('[Service Worker] 收到跳過等待指令，立即更新！');
     self.skipWaiting();
   }
 });
