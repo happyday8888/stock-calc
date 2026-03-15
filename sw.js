@@ -1,6 +1,6 @@
-// sw.js - 版本號：v20260316.12
+// sw.js - 版本號：v20260316.13
 // 每次修改 index.html 內容後，請務必跳動此版本號，以觸發使用者端的自動更新彈窗
-const CACHE_NAME = 'stock-calculator-v20260316.12'; 
+const CACHE_NAME = 'stock-calculator-v20260316.13'; 
 const ASSETS_TO_CACHE = [
   'index.html',
   'manifest.json'
@@ -21,13 +21,13 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
+          // 只要不是現在這個版本，全部刪除，不留活口
           if (cache !== CACHE_NAME) {
-            console.log('Cleaning old cache:', cache);
             return caches.delete(cache);
           }
         })
       );
-    }).then(() => self.clients.claim()) // 立即接管所有頁面
+    }).then(() => self.clients.claim()) 
   );
 });
 
