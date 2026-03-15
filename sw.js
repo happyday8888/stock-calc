@@ -1,5 +1,5 @@
-// sw.js - 版本號：v20260316.18
-const CACHE_NAME = 'stock-calculator-v20260316.18';
+// sw.js - 版本號：v20260316.19
+const CACHE_NAME = 'stock-calculator-v20260316.19';
 
 // ... 安裝與激活事件保持不變 ...
 
