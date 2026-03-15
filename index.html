@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>台股交易損益試算器</title>
     
-    <link rel="manifest" href="manifest.json?v=20260316">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e293b">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2422/2422796.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -108,15 +108,13 @@
                                 <option value="round">四捨五入</option>
                             </select>
                         </div>
-                        <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
+                        <div class="pt-4 border-t border-gray-100 dark:border-slate-700">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
-                            <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.10
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="flex-grow">
                 <div class="bg-white dark:bg-slate-800 shadow-md rounded-xl border border-gray-200 dark:border-slate-700 table-container transition-colors">
                     <table class="w-full text-center text-sm min-w-[800px]">
@@ -135,18 +133,54 @@
                     </table>
                     <div id="empty-state" class="p-20 text-center text-gray-400 dark:text-slate-500">請輸入「買入價格」開始試算</div>
                 </div>
+                <p class="mt-8 text-xs text-gray-400 dark:text-slate-600 text-center">Copyright © 2026 Nick Hsu</p>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. 保留原本的邏輯函數 (calculate, updateIcon 等)
-        // ... (內容與您原始代碼一致)
-        function updateIcon() { const icon = document.getElementById('theme-icon'); if (document.documentElement.classList.contains('dark')) { icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.95 16.95l.707.707M7.05 7.05l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />'; icon.setAttribute('class', 'h-6 w-6 text-yellow-400'); } else { icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />'; icon.setAttribute('class', 'h-6 w-6 text-blue-100'); } }
-        function toggleDarkMode() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); updateIcon(); }
-        function closePwaBanner() { document.getElementById('pwa-banner').style.display = 'none'; localStorage.setItem('pwa_banner_closed', 'true'); }
-        function checkPwaBanner() { if (localStorage.getItem('pwa_banner_closed') !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) { setTimeout(() => { const b = document.getElementById('pwa-banner'); if(b) { b.style.display = 'flex'; setTimeout(() => b.classList.add('show'), 50); } }, 3000); } }
-        function getTickSize(p, type) { const price = parseFloat(p); if (type === 'etf') return price < 49.9999 ? 0.01 : 0.05; if (price < 9.9999) return 0.01; if (price < 49.9999) return 0.05; if (price < 99.9999) return 0.1; if (price < 499.9999) return 0.5; if (price < 999.9999) return 1.0; return 5.0; }
+        // --- 模式切換邏輯 ---
+        function updateIcon() {
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.95 16.95l.707.707M7.05 7.05l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />';
+                icon.setAttribute('class', 'h-6 w-6 text-yellow-400');
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />';
+                icon.setAttribute('class', 'h-6 w-6 text-blue-100');
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            updateIcon();
+        }
+
+        // --- PWA 橫幅邏輯 ---
+        function closePwaBanner() {
+            document.getElementById('pwa-banner').style.display = 'none';
+            localStorage.setItem('pwa_banner_closed', 'true');
+        }
+
+        function checkPwaBanner() {
+            if (localStorage.getItem('pwa_banner_closed') !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) {
+                setTimeout(() => { 
+                    const b = document.getElementById('pwa-banner');
+                    b.style.display = 'flex'; 
+                    setTimeout(() => b.classList.add('show'), 50);
+                }, 3000);
+            }
+        }
+
+        // --- 核心計算邏輯 (簡化顯示) ---
+        function getTickSize(p, type) {
+            const price = parseFloat(p);
+            if (type === 'etf') return price < 50 ? 0.01 : 0.05;
+            if (price < 10) return 0.01; if (price < 50) return 0.05; if (price < 100) return 0.1;
+            if (price < 500) return 0.5; if (price < 1000) return 1.0; return 5.0;
+        }
+
         function calculate() {
             const buyPrice = parseFloat(document.getElementById('buyPrice').value);
             const targetSellPrice = parseFloat(document.getElementById('targetSellPrice').value);
@@ -156,16 +190,20 @@
             const feeMethod = document.getElementById('feeMethod').value;
             const tradeType = document.getElementById('tradeType').value;
             const tableBody = document.getElementById('tableBody');
+
             if(!buyPrice || isNaN(buyPrice)) { document.getElementById('empty-state').style.display = 'block'; tableBody.innerHTML = ''; return; }
             document.getElementById('empty-state').style.display = 'none';
+
             let taxRate = (tradeType === 'dayTrade') ? 0.0015 : (tradeType === 'etf' ? 0.001 : 0.003);
             const processFee = (amt) => {
                 let f = (feeMethod === 'floor') ? Math.floor(amt * 0.001425 * discountFactor) : Math.round(amt * 0.001425 * discountFactor);
                 return Math.max(minFee, f);
             };
+
             const buyFee = processFee(buyPrice * shares);
             const totalCost = (buyPrice * shares) + buyFee;
             tableBody.innerHTML = '';
+
             const createRow = (sPrice, cls = "") => {
                 if (!sPrice || sPrice <= 0) return "";
                 const sAmt = sPrice * shares;
@@ -175,6 +213,7 @@
                 const roi = (profit / totalCost) * 100;
                 const color = profit >= 0 ? 'profit-red' : 'loss-green';
                 const bg = cls === "bg-orange-50" ? "bg-orange-50 dark:bg-orange-900/20" : (cls === "bg-yellow-100" ? "bg-yellow-100 dark:bg-yellow-900/30 text-black dark:text-yellow-200" : "");
+                
                 return `<tr class="${bg} hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                     <td class="p-4 font-mono font-bold">${sPrice.toFixed(2)}</td>
                     <td class="p-4 ${color}">${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()}</td>
@@ -185,56 +224,52 @@
                     <td class="p-4 text-gray-400 text-xs">${Math.round(totalCost).toLocaleString()}</td>
                 </tr>`;
             };
+
             if (targetSellPrice > 0) tableBody.innerHTML += createRow(targetSellPrice, "bg-orange-50");
             for (let i = -5; i <= 5; i++) {
                 let p = buyPrice;
-                for (let s = 0; s < Math.abs(i); s++) { p += (i > 0) ? getTickSize(p, tradeType) : -getTickSize(p - 0.0001, tradeType); }
+                for (let s = 0; s < Math.abs(i); s++) p += (i > 0) ? getTickSize(p, tradeType) : -getTickSize(p - 0.0001, tradeType);
                 tableBody.innerHTML += createRow(Math.round(p * 100) / 100, i === 0 ? "bg-yellow-100" : "");
             }
         }
-        function loadSettings() { document.getElementById('discount').value = localStorage.getItem('stock_discount_v2') || 6; document.getElementById('minFee').value = localStorage.getItem('stock_minFee') || 20; document.getElementById('tradeType').value = localStorage.getItem('stock_tradeType') || 'stock'; document.getElementById('feeMethod').value = localStorage.getItem('stock_feeMethod') || 'floor'; }
-        function saveSettings() { localStorage.setItem('stock_discount_v2', document.getElementById('discount').value); localStorage.setItem('stock_minFee', document.getElementById('minFee').value); localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value); localStorage.setItem('stock_feeMethod', document.getElementById('feeMethod').value); const t = document.getElementById('save-toast'); if(t) { t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); } }
+
+        // --- 設定存取 ---
+        function loadSettings() {
+            document.getElementById('discount').value = localStorage.getItem('stock_discount_v2') || 6;
+            document.getElementById('minFee').value = localStorage.getItem('stock_minFee') || 20;
+            document.getElementById('tradeType').value = localStorage.getItem('stock_tradeType') || 'stock';
+        }
+        function saveSettings() {
+            localStorage.setItem('stock_discount_v2', document.getElementById('discount').value);
+            localStorage.setItem('stock_minFee', document.getElementById('minFee').value);
+            localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value);
+            const t = document.getElementById('save-toast'); t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000);
+        }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- 核心：還原成昨日最穩定的 Service Worker 註冊代碼 ---
+        // --- Service Worker 註冊與更新偵測 ---
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                // 每次都抓新鮮的 sw.js
-                var swUrl = 'sw.js?v=' + Date.now();
-                
-                navigator.serviceWorker.register(swUrl).then(function(reg) {
-                    // 強制檢查更新
-                    reg.update();
-
-                    reg.onupdatefound = function() {
-                        var installingWorker = reg.installing;
-                        installingWorker.onstatechange = function() {
-                            if (installingWorker.state === 'installed') {
-                                if (navigator.serviceWorker.controller) {
-                                    // 這裡是昨天還會跳出的彈窗核心
-                                    if (confirm('📊 發現新版工具內容！\n是否立即更新以獲得最新試算邏輯與介面調整？')) {
-                                        installingWorker.postMessage('SKIP_WAITING');
-                                    }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                if (confirm('發現新版本！是否立即更新以獲得最新功能？')) {
+                                    window.location.reload();
                                 }
                             }
-                        };
-                    };
+                        });
+                    });
                 });
-            });
-
-            var refreshing;
-            navigator.serviceWorker.addEventListener('controllerchange', function() {
-                if (refreshing) return;
-                window.location.reload();
-                refreshing = true;
             });
         }
 
+        // 啟動
         document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculate));
         document.getElementById('discount').addEventListener('change', saveSettings);
         document.getElementById('minFee').addEventListener('change', saveSettings);
         document.getElementById('tradeType').addEventListener('change', saveSettings);
-        document.getElementById('feeMethod').addEventListener('change', saveSettings);
         window.onload = () => { loadSettings(); calculate(); checkPwaBanner(); updateIcon(); };
     </script>
 </body>
