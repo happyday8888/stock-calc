@@ -1,8 +1,8 @@
-// sw.js - 版本號，每次修改 HTML 後建議改一下這裡的數字
-const CACHE_NAME = 'stock-calculator-v1.0.1';
+// sw.js - 版本號：v20260316.01
+// 每次修改 index.html 內容後，請務必跳動此版本號，以觸發使用者端的自動更新彈窗
+const CACHE_NAME = 'stock-calculator-v20260316.01'; 
 const ASSETS_TO_CACHE = [
   'index.html',
-  // 如果你有 manifest.json 或 icon，也要列在這裡
   'manifest.json'
 ];
 
@@ -22,6 +22,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
+            console.log('Cleaning old cache:', cache);
             return caches.delete(cache);
           }
         })
@@ -34,6 +35,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
+      // 優先回傳快取內容，若無快取則發起網路請求
       return response || fetch(event.request);
     })
   );
