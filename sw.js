@@ -5,7 +5,7 @@
  * 例如：v20260316.01 -> v20260316.02
  */
 
-const VERSION = 'v20260316.02'; // <--- 每次上傳前改這裡
+const VERSION = 'v20260316.03'; // <--- 每次上傳前改這裡
 const CACHE_NAME = `stock-calculator-${VERSION}`;
 
 // 定義需要快取的資源
