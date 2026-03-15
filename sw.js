@@ -1,9 +1,9 @@
 /**
  * Service Worker - 台股交易損益試算器
- * 版本號：v20260316.07 (每次修改代碼後，請務必手動增加此數字)
+ * 版本號：v20260316.08 (每次修改代碼後，請務必手動增加此數字)
  */
 
-const VERSION = 'v20260316.07'; 
+const VERSION = 'v20260316.08'; 
 const CACHE_NAME = `stock-calculator-${VERSION}`;
 
 // 定義需要快取的靜態資源
