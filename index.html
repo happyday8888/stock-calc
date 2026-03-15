@@ -108,8 +108,11 @@
                                 <option value="round">四捨五入</option>
                             </select>
                         </div>
-                        <div class="pt-4 border-t border-gray-100 dark:border-slate-700">
+                        <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
+                            <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
+                                System Version: v20260316.01
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -139,7 +142,6 @@
     </div>
 
     <script>
-        // --- 模式切換邏輯 ---
         function updateIcon() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
@@ -157,7 +159,6 @@
             updateIcon();
         }
 
-        // --- PWA 橫幅邏輯 ---
         function closePwaBanner() {
             document.getElementById('pwa-banner').style.display = 'none';
             localStorage.setItem('pwa_banner_closed', 'true');
@@ -167,13 +168,14 @@
             if (localStorage.getItem('pwa_banner_closed') !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) {
                 setTimeout(() => { 
                     const b = document.getElementById('pwa-banner');
-                    b.style.display = 'flex'; 
-                    setTimeout(() => b.classList.add('show'), 50);
+                    if(b) {
+                        b.style.display = 'flex'; 
+                        setTimeout(() => b.classList.add('show'), 50);
+                    }
                 }, 3000);
             }
         }
 
-        // --- 核心計算邏輯 (簡化顯示) ---
         function getTickSize(p, type) {
             const price = parseFloat(p);
             if (type === 'etf') return price < 50 ? 0.01 : 0.05;
@@ -233,43 +235,49 @@
             }
         }
 
-        // --- 設定存取 ---
         function loadSettings() {
             document.getElementById('discount').value = localStorage.getItem('stock_discount_v2') || 6;
             document.getElementById('minFee').value = localStorage.getItem('stock_minFee') || 20;
             document.getElementById('tradeType').value = localStorage.getItem('stock_tradeType') || 'stock';
+            document.getElementById('feeMethod').value = localStorage.getItem('stock_feeMethod') || 'floor';
         }
         function saveSettings() {
             localStorage.setItem('stock_discount_v2', document.getElementById('discount').value);
             localStorage.setItem('stock_minFee', document.getElementById('minFee').value);
             localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value);
-            const t = document.getElementById('save-toast'); t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000);
+            localStorage.setItem('stock_feeMethod', document.getElementById('feeMethod').value);
+            const t = document.getElementById('save-toast'); if(t) { t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); }
         }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- Service Worker 註冊與更新偵測 ---
+        // --- 強效版 Service Worker 註冊與更新偵測 ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    reg.addEventListener('updatefound', () => {
+                // 加一個隨機參數確保每次註冊都抓到最新的 sw.js
+                navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(reg => {
+                    console.log('SW Registered');
+                    
+                    // 當 sw.js 內容有變動時觸發
+                    reg.onupdatefound = () => {
                         const newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', () => {
+                        newWorker.onstatechange = () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm('發現新版本！是否立即更新以獲得最新功能？')) {
+                                // 這裡就是您最想要的彈窗
+                                if (confirm('📊 發現新版本！\n是否立即更新以獲得最新試算邏輯與介面調整？')) {
                                     window.location.reload();
                                 }
                             }
-                        });
-                    });
+                        };
+                    };
                 });
             });
         }
 
-        // 啟動
         document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculate));
         document.getElementById('discount').addEventListener('change', saveSettings);
         document.getElementById('minFee').addEventListener('change', saveSettings);
         document.getElementById('tradeType').addEventListener('change', saveSettings);
+        document.getElementById('feeMethod').addEventListener('change', saveSettings);
         window.onload = () => { loadSettings(); calculate(); checkPwaBanner(); updateIcon(); };
     </script>
 </body>
