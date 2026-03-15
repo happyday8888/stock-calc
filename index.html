@@ -111,7 +111,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.03
+                                System Version: v20260316.04
                             </div>
                         </div>
                     </div>
@@ -142,7 +142,7 @@
     </div>
 
     <script>
-        // --- 模式切換邏輯 ---
+        // --- 核心計算與介面邏輯 (略，維持原狀) ---
         function updateIcon() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
@@ -153,32 +153,23 @@
                 icon.setAttribute('class', 'h-6 w-6 text-blue-100');
             }
         }
-
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             updateIcon();
         }
-
-        // --- PWA 橫幅邏輯 ---
         function closePwaBanner() {
             document.getElementById('pwa-banner').style.display = 'none';
             localStorage.setItem('pwa_banner_closed', 'true');
         }
-
         function checkPwaBanner() {
             if (localStorage.getItem('pwa_banner_closed') !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) {
                 setTimeout(() => { 
                     const b = document.getElementById('pwa-banner');
-                    if(b) {
-                        b.style.display = 'flex'; 
-                        setTimeout(() => b.classList.add('show'), 50);
-                    }
+                    if(b) { b.style.display = 'flex'; setTimeout(() => b.classList.add('show'), 50); }
                 }, 3000);
             }
         }
-
-        // --- 核心計算邏輯 ---
         function getTickSize(p, type) {
             const price = parseFloat(p);
             if (type === 'etf') return price < 49.9999 ? 0.01 : 0.05;
@@ -189,7 +180,6 @@
             if (price < 999.9999) return 1.0; 
             return 5.0;
         }
-
         function calculate() {
             const buyPrice = parseFloat(document.getElementById('buyPrice').value);
             const targetSellPrice = parseFloat(document.getElementById('targetSellPrice').value);
@@ -199,24 +189,16 @@
             const feeMethod = document.getElementById('feeMethod').value;
             const tradeType = document.getElementById('tradeType').value;
             const tableBody = document.getElementById('tableBody');
-
-            if(!buyPrice || isNaN(buyPrice)) { 
-                document.getElementById('empty-state').style.display = 'block'; 
-                tableBody.innerHTML = ''; 
-                return; 
-            }
+            if(!buyPrice || isNaN(buyPrice)) { document.getElementById('empty-state').style.display = 'block'; tableBody.innerHTML = ''; return; }
             document.getElementById('empty-state').style.display = 'none';
-
             let taxRate = (tradeType === 'dayTrade') ? 0.0015 : (tradeType === 'etf' ? 0.001 : 0.003);
             const processFee = (amt) => {
                 let f = (feeMethod === 'floor') ? Math.floor(amt * 0.001425 * discountFactor) : Math.round(amt * 0.001425 * discountFactor);
                 return Math.max(minFee, f);
             };
-
             const buyFee = processFee(buyPrice * shares);
             const totalCost = (buyPrice * shares) + buyFee;
             tableBody.innerHTML = '';
-
             const createRow = (sPrice, cls = "") => {
                 if (!sPrice || sPrice <= 0) return "";
                 const sAmt = sPrice * shares;
@@ -226,7 +208,6 @@
                 const roi = (profit / totalCost) * 100;
                 const color = profit >= 0 ? 'profit-red' : 'loss-green';
                 const bg = cls === "bg-orange-50" ? "bg-orange-50 dark:bg-orange-900/20" : (cls === "bg-yellow-100" ? "bg-yellow-100 dark:bg-yellow-900/30 text-black dark:text-yellow-200" : "");
-                
                 return `<tr class="${bg} hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                     <td class="p-4 font-mono font-bold">${sPrice.toFixed(2)}</td>
                     <td class="p-4 ${color}">${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()}</td>
@@ -237,18 +218,13 @@
                     <td class="p-4 text-gray-400 text-xs">${Math.round(totalCost).toLocaleString()}</td>
                 </tr>`;
             };
-
             if (targetSellPrice > 0) tableBody.innerHTML += createRow(targetSellPrice, "bg-orange-50");
             for (let i = -5; i <= 5; i++) {
                 let p = buyPrice;
-                for (let s = 0; s < Math.abs(i); s++) {
-                    p += (i > 0) ? getTickSize(p, tradeType) : -getTickSize(p - 0.0001, tradeType);
-                }
+                for (let s = 0; s < Math.abs(i); s++) { p += (i > 0) ? getTickSize(p, tradeType) : -getTickSize(p - 0.0001, tradeType); }
                 tableBody.innerHTML += createRow(Math.round(p * 100) / 100, i === 0 ? "bg-yellow-100" : "");
             }
         }
-
-        // --- 設定存取 ---
         function loadSettings() {
             document.getElementById('discount').value = localStorage.getItem('stock_discount_v2') || 6;
             document.getElementById('minFee').value = localStorage.getItem('stock_minFee') || 20;
@@ -258,30 +234,39 @@
             localStorage.setItem('stock_discount_v2', document.getElementById('discount').value);
             localStorage.setItem('stock_minFee', document.getElementById('minFee').value);
             localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value);
-            const t = document.getElementById('save-toast'); 
-            if(t) {
-                t.style.opacity = '1'; 
-                setTimeout(() => t.style.opacity = '0', 2000);
-            }
+            const t = document.getElementById('save-toast'); if(t) { t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); }
         }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- Service Worker 註冊與更新偵測 ---
+        // --- Service Worker 強制更新與彈窗機制 ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(reg => {
+                    // 每次載入都強制去伺服器檢查 sw.js 是否有變動
                     reg.update();
+
+                    // 偵測到有新 Service Worker 在安裝
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
+                            // 下載完成 (installed) 且目前有舊版正在控制頁面
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm('📊 發現新版工具內容！是否立即更新以獲得最新試算邏輯？')) {
+                                if (confirm('📊 發現系統更新！\n\n我們已經準備好最新版本，是否立即重新載入以套用更新？')) {
+                                    // 傳送 SKIP_WAITING 指令給 SW
                                     newWorker.postMessage('SKIP_WAITING');
-                                    window.location.reload();
                                 }
                             }
                         });
                     });
+                });
+
+                // 監聽控制權轉移：當 SW 成功跳過等待並接管後，自動重新整理頁面
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        window.location.reload();
+                        refreshing = true;
+                    }
                 });
             });
         }
