@@ -1,81 +1,40 @@
-/**
- * Service Worker - 台股交易損益試算器
- * 版本號：v20260316.11 (每次修改代碼後，請務必手動增加此數字)
- */
-
-const VERSION = 'v20260316.11'; 
-const CACHE_NAME = `stock-calculator-${VERSION}`;
-
-// 定義需要快取的靜態資源
+// sw.js - 版本號，每次修改 HTML 後建議改一下這裡的數字
+const CACHE_NAME = 'stock-calculator-v1.0.1';
 const ASSETS_TO_CACHE = [
-  './',
   'index.html',
-  'manifest.json',
-  'https://cdn.tailwindcss.com'
+  // 如果你有 manifest.json 或 icon，也要列在這裡
+  'manifest.json'
 ];
 
-// --- 1. 安裝階段 (Install) ---
+// 安裝並強制快取資源
 self.addEventListener('install', (event) => {
-  console.log(`[Service Worker] 正在安裝新版本: ${VERSION}`);
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] 預載入靜態資源中...');
-      // 使用 cache.addAll 確保關鍵檔案都存入手機
       return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
-  // 不在這裡使用 self.skipWaiting()，因為我們要等 index.html 彈窗後的指令
-});
-
-// --- 2. 擷取階段 (Fetch) ---
-// 策略：強效網路優先 (Network First)
-// 確保只要有網路，就一定拿最新的內容，沒網路才用快取
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // 成功抓到最新資料，更新到快取中
-        if (response && response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // 沒網路時，才回傳快取檔案
-        return caches.match(event.request);
-      })
+    }).then(() => self.skipWaiting()) // 強制跳過等待，讓新版 sw 立即生效
   );
 });
 
-// --- 3. 激活階段 (Activate) ---
+// 激活並清理舊版快取
 self.addEventListener('activate', (event) => {
-  console.log(`[Service Worker] 版本 ${VERSION} 正式啟動並準備接管`);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((name) => {
-          // 刪除所有不是目前版本 (CACHE_NAME) 的舊快取
-          if (name !== CACHE_NAME) {
-            console.log(`[Service Worker] 刪除舊快取檔案: ${name}`);
-            return caches.delete(name);
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
           }
         })
       );
-    }).then(() => {
-      // 讓新的 Service Worker 立即取得控制權
-      return self.clients.claim();
-    })
+    }).then(() => self.clients.claim()) // 立即接管所有頁面
   );
 });
 
-// --- 4. 訊息監聽 (Message) ---
-// 接收來自 index.html 的 SKIP_WAITING 指令
-self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') {
-    console.log('[Service Worker] 收到跳過等待指令，立即更新！');
-    self.skipWaiting();
-  }
+// 攔截請求並優先從快取讀取
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
 });
