@@ -1,6 +1,6 @@
-// sw.js - 版本號：v20260316.01
+// sw.js - 版本號：v20260316.02
 // 每次修改 index.html 內容後，請務必跳動此版本號，以觸發使用者端的自動更新彈窗
-const CACHE_NAME = 'stock-calculator-v20260316.01'; 
+const CACHE_NAME = 'stock-calculator-v20260316.02'; 
 const ASSETS_TO_CACHE = [
   'index.html',
   'manifest.json'
