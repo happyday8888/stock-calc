@@ -133,7 +133,9 @@
                     </table>
                     <div id="empty-state" class="p-20 text-center text-gray-400 dark:text-slate-500">請輸入「買入價格」開始試算</div>
                 </div>
-                <p class="mt-8 text-xs text-gray-400 dark:text-slate-600 text-center">Copyright © 2026 Nick Hsu</p>
+                <p class="mt-8 text-xs text-gray-400 dark:text-slate-600 text-center">
+                    Copyright © 2026 Nick Hsu | <span class="opacity-50">v20260316.02</span>
+                </p>
             </div>
         </div>
     </div>
@@ -178,7 +180,6 @@
         // --- 核心計算邏輯 ---
         function getTickSize(p, type) {
             const price = parseFloat(p);
-            // 處理臨界值精度問題
             if (type === 'etf') return price < 49.9999 ? 0.01 : 0.05;
             if (price < 9.9999) return 0.01; 
             if (price < 49.9999) return 0.05; 
@@ -268,16 +269,14 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(reg => {
-                    
-                    // 強制檢查伺服器端是否有 sw.js 更新
                     reg.update();
-
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
-                            // 當新版下載完成且目前已有舊版在運作時觸發彈窗
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 if (confirm('📊 發現新版工具內容！是否立即更新以獲得最新試算邏輯？')) {
+                                    // 傳送指令讓 SW 進入跳過等待狀態
+                                    newWorker.postMessage('SKIP_WAITING');
                                     window.location.reload();
                                 }
                             }
