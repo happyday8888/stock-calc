@@ -111,7 +111,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.16
+                                System Version: v20260316.17
                             </div>
                         </div>
                     </div>
@@ -253,9 +253,9 @@
         // --- 優化版：解決主頁 APP 即時更新問題 ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // 每次部署新版時，請同步更改此處與 sw.js 的版本號
-                navigator.serviceWorker.register('sw.js?v=20260316.15').then(reg => {
-                    // 強迫 PWA 每一次開啟都去檢查伺服器上的 sw.js 有無變動
+                // 使用版本號 query string 強制 register 獲取最新的 sw.js 設定
+                navigator.serviceWorker.register('sw.js?v=20260316.16').then(reg => {
+                    // 每次啟動強制檢查更新
                     reg.update();
 
                     reg.onupdatefound = () => {
@@ -269,17 +269,17 @@
                 });
             });
 
-            let isRefreshing = false;
+            let refreshing = false;
             function showUpdatePrompt(worker) {
-                if (isRefreshing) return;
+                if (refreshing) return;
                 setTimeout(() => {
                     if (confirm('📊 系統有新版本更新！\n是否立即更新以獲得最新功能？')) {
-                        isRefreshing = true;
+                        refreshing = true;
                         
                         // 1. 通知 SW 立即進入 active 狀態
                         worker.postMessage({ action: 'skipWaiting' });
                         
-                        // 2. 當新的 SW 正式接管頁面控制權時，才執行重新整理
+                        // 2. 關鍵：監聽 controllerchange，確保新的 SW 已完全接管才 Reload
                         navigator.serviceWorker.addEventListener('controllerchange', () => {
                             window.location.reload();
                         });
