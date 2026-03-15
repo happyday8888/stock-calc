@@ -111,7 +111,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.01
+                                System Version: v20260316.02
                             </div>
                         </div>
                     </div>
@@ -250,27 +250,37 @@
         }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- 強效版 Service Worker 註冊與更新偵測 ---
+        // --- 修復無限彈窗的 Service Worker 邏輯 ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // 加一個隨機參數確保每次註冊都抓到最新的 sw.js
-                navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(reg => {
+                // 改用固定版本號，避免 Date.now() 造成每次刷新都判定為新 SW
+                navigator.serviceWorker.register('sw.js?v=20260316.01').then(reg => {
                     console.log('SW Registered');
                     
-                    // 當 sw.js 內容有變動時觸發
                     reg.onupdatefound = () => {
                         const newWorker = reg.installing;
                         newWorker.onstatechange = () => {
+                            // 只有當新 SW 安裝完成，且目前頁面已被舊 SW 控制時才彈窗
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // 這裡就是您最想要的彈窗
-                                if (confirm('📊 發現新版本！\n是否立即更新以獲得最新試算邏輯與介面調整？')) {
-                                    window.location.reload();
-                                }
+                                showUpdatePrompt();
                             }
                         };
                     };
                 });
             });
+
+            // 防止重複重新整理的鎖
+            let isRefreshing = false;
+            function showUpdatePrompt() {
+                if (isRefreshing) return;
+                // 使用 setTimeout 微調彈窗時機，增加穩定性
+                setTimeout(() => {
+                    if (confirm('📊 發現新版本 v20260316.01！\n是否立即更新以獲得最新功能？')) {
+                        isRefreshing = true;
+                        window.location.reload();
+                    }
+                }, 1000);
+            }
         }
 
         document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculate));
