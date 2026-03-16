@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>台股交易損益試算器</title>
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e293b">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2422/2422796.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -111,7 +112,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.19
+                                System Version: v20260316.20
                             </div>
                         </div>
                     </div>
@@ -142,6 +143,7 @@
     </div>
 
     <script>
+        // --- 基本功能區 ---
         function updateIcon() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
@@ -152,37 +154,29 @@
                 icon.setAttribute('class', 'h-6 w-6 text-blue-100');
             }
         }
-
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             updateIcon();
         }
-
         function closePwaBanner() {
             document.getElementById('pwa-banner').style.display = 'none';
             localStorage.setItem('pwa_banner_closed', 'true');
         }
-
         function checkPwaBanner() {
             if (localStorage.getItem('pwa_banner_closed') !== 'true' && !window.matchMedia('(display-mode: standalone)').matches) {
                 setTimeout(() => { 
                     const b = document.getElementById('pwa-banner');
-                    if(b) {
-                        b.style.display = 'flex'; 
-                        setTimeout(() => b.classList.add('show'), 50);
-                    }
+                    if(b) { b.style.display = 'flex'; setTimeout(() => b.classList.add('show'), 50); }
                 }, 3000);
             }
         }
-
         function getTickSize(p, type) {
             const price = parseFloat(p);
             if (type === 'etf') return price < 50 ? 0.01 : 0.05;
             if (price < 10) return 0.01; if (price < 50) return 0.05; if (price < 100) return 0.1;
             if (price < 500) return 0.5; if (price < 1000) return 1.0; return 5.0;
         }
-
         function calculate() {
             const buyPrice = parseFloat(document.getElementById('buyPrice').value);
             const targetSellPrice = parseFloat(document.getElementById('targetSellPrice').value);
@@ -192,20 +186,16 @@
             const feeMethod = document.getElementById('feeMethod').value;
             const tradeType = document.getElementById('tradeType').value;
             const tableBody = document.getElementById('tableBody');
-
             if(!buyPrice || isNaN(buyPrice)) { document.getElementById('empty-state').style.display = 'block'; tableBody.innerHTML = ''; return; }
             document.getElementById('empty-state').style.display = 'none';
-
             let taxRate = (tradeType === 'dayTrade') ? 0.0015 : (tradeType === 'etf' ? 0.001 : 0.003);
             const processFee = (amt) => {
                 let f = (feeMethod === 'floor') ? Math.floor(amt * 0.001425 * discountFactor) : Math.round(amt * 0.001425 * discountFactor);
                 return Math.max(minFee, f);
             };
-
             const buyFee = processFee(buyPrice * shares);
             const totalCost = (buyPrice * shares) + buyFee;
             tableBody.innerHTML = '';
-
             const createRow = (sPrice, cls = "") => {
                 if (!sPrice || sPrice <= 0) return "";
                 const sAmt = sPrice * shares;
@@ -215,18 +205,8 @@
                 const roi = (profit / totalCost) * 100;
                 const color = profit >= 0 ? 'profit-red' : 'loss-green';
                 const bg = cls === "bg-orange-50" ? "bg-orange-50 dark:bg-orange-900/20" : (cls === "bg-yellow-100" ? "bg-yellow-100 dark:bg-yellow-900/30 text-black dark:text-yellow-200" : "");
-                
-                return `<tr class="${bg} hover:bg-gray-50 dark:hover:bg-slate-700 transition">
-                    <td class="p-4 font-mono font-bold">${sPrice.toFixed(2)}</td>
-                    <td class="p-4 ${color}">${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()}</td>
-                    <td class="p-4 ${color}">${roi.toFixed(2)}%</td>
-                    <td class="p-4 text-gray-400 text-xs">${buyFee}</td>
-                    <td class="p-4 text-gray-400 text-xs">${sFee}</td>
-                    <td class="p-4 text-gray-400 text-xs">${sTax.toLocaleString()}</td>
-                    <td class="p-4 text-gray-400 text-xs">${Math.round(totalCost).toLocaleString()}</td>
-                </tr>`;
+                return `<tr class="${bg} hover:bg-gray-50 dark:hover:bg-slate-700 transition"><td class="p-4 font-mono font-bold">${sPrice.toFixed(2)}</td><td class="p-4 ${color}">${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()}</td><td class="p-4 ${color}">${roi.toFixed(2)}%</td><td class="p-4 text-gray-400 text-xs">${buyFee}</td><td class="p-4 text-gray-400 text-xs">${sFee}</td><td class="p-4 text-gray-400 text-xs">${sTax.toLocaleString()}</td><td class="p-4 text-gray-400 text-xs">${Math.round(totalCost).toLocaleString()}</td></tr>`;
             };
-
             if (targetSellPrice > 0) tableBody.innerHTML += createRow(targetSellPrice, "bg-orange-50");
             for (let i = -5; i <= 5; i++) {
                 let p = buyPrice;
@@ -234,7 +214,6 @@
                 tableBody.innerHTML += createRow(Math.round(p * 100) / 100, i === 0 ? "bg-yellow-100" : "");
             }
         }
-
         function loadSettings() {
             document.getElementById('discount').value = localStorage.getItem('stock_discount_v2') || 6;
             document.getElementById('minFee').value = localStorage.getItem('stock_minFee') || 20;
@@ -250,13 +229,24 @@
         }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- 優化版：解決主頁 APP 即時更新問題 ---
+        // --- 核心：自動重整邏輯 ---
         if ('serviceWorker' in navigator) {
+            let refreshing = false;
+
+            // 監聽控制權變更，當按下確認且 SW 激活後，這裡會被觸發
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload(); // 自動執行重新整理
+            });
+
             window.addEventListener('load', () => {
-                // 使用版本號 query string 強制 register 獲取最新的 sw.js 設定
-                navigator.serviceWorker.register('sw.js?v=20260316.16').then(reg => {
-                    // 每次啟動強制檢查更新
-                    reg.update();
+                // 使用版本號 v21
+                navigator.serviceWorker.register('sw.js?v=20260316.21').then(reg => {
+                    // 如果一進來就發現有正在等待的更新
+                    if (reg.waiting) {
+                        showUpdatePrompt(reg.waiting);
+                    }
 
                     reg.onupdatefound = () => {
                         const newWorker = reg.installing;
@@ -269,20 +259,11 @@
                 });
             });
 
-            let refreshing = false;
             function showUpdatePrompt(worker) {
-                if (refreshing) return;
                 setTimeout(() => {
-                    if (confirm('📊 系統有新版本更新！\n是否立即更新以獲得最新功能？')) {
-                        refreshing = true;
-                        
-                        // 1. 通知 SW 立即進入 active 狀態
+                    if (confirm('📊 發現新版本！是否立即更新？')) {
+                        // 向 SW 發送跳過等待指令
                         worker.postMessage({ action: 'skipWaiting' });
-                        
-                        // 2. 關鍵：監聽 controllerchange，確保新的 SW 已完全接管才 Reload
-                        navigator.serviceWorker.addEventListener('controllerchange', () => {
-                            window.location.reload();
-                        });
                     }
                 }, 1000);
             }
