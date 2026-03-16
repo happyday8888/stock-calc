@@ -261,7 +261,7 @@
 
             function showUpdatePrompt(worker) {
                 setTimeout(() => {
-                    if (confirm('📊 發現新版本！是否立即更新？')) {
+                    if (confirm('📊 發現新版本！是否立即更新以獲得最新功能？？')) {
                         // 向 SW 發送跳過等待指令
                         worker.postMessage({ action: 'skipWaiting' });
                     }
