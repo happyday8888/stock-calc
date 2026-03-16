@@ -115,7 +115,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260316.24
+                                System Version: v20260316.22
                             </div>
                         </div>
                     </div>
@@ -254,13 +254,18 @@
         }
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- 強制即時更新邏輯 ---
+        // --- 修正後的 Service Worker 註冊與更新提示邏輯 ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // 使用新版本號 v21 註冊
-                navigator.serviceWorker.register('sw.js?v=20260316.21').then(reg => {
+                // 使用版本號 v22 註冊以對應最新的 sw.js
+                navigator.serviceWorker.register('sw.js?v=20260316.22').then(reg => {
                     // 主動觸發檢查更新
                     reg.update();
+
+                    // 檢查是否有正在等待的更新 (之前下載好但還沒啟動的)
+                    if (reg.waiting) {
+                        showUpdatePrompt(reg.waiting);
+                    }
 
                     reg.onupdatefound = () => {
                         const newWorker = reg.installing;
@@ -276,12 +281,10 @@
             let refreshing = false;
             function showUpdatePrompt(worker) {
                 if (refreshing) return;
-                // 延遲一點點顯示，確保體驗流暢
                 setTimeout(() => {
-                    if (confirm('📊 發現新版本 (v21)！\n是否立即更新以修正顯示問題？')) {
+                    if (confirm('📊 發現新版本 (v22)！\n是否立即更新以修正顯示問題？')) {
                         refreshing = true;
                         worker.postMessage({ action: 'skipWaiting' });
-                        // 監聽控制器變化後重整
                         navigator.serviceWorker.addEventListener('controllerchange', () => {
                             window.location.reload();
                         });
