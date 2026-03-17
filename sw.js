@@ -1,5 +1,5 @@
-// sw.js - 版本號：v20260316.26
-const CACHE_NAME = 'stock-calculator-v20260316.26'; 
+// sw.js - 版本號：v20260317.01
+const CACHE_NAME = 'stock-calculator-v20260317.01'; 
 const ASSETS_TO_CACHE = [
   'index.html',
   'manifest.json'
