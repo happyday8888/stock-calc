@@ -38,7 +38,6 @@
         .tooltip-text { visibility: hidden; width: 80px; background-color: #334155; color: #fff; text-align: center; border-radius: 4px; padding: 4px 0; position: absolute; z-index: 50; top: 115%; left: 50%; margin-left: -40px; opacity: 0; transition: opacity 0.2s; font-size: 11px; font-weight: bold; pointer-events: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .dark .tooltip-text { background-color: #475569; border: 1px solid #64748b; }
         .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
-        /* 隱藏輸入框的小箭頭 */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
     </style>
@@ -124,7 +123,7 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-700 text-center">
                             <button onclick="clearStorage()" class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition">恢復系統預設值</button>
                             <div class="mt-2 text-[10px] font-mono text-gray-300 dark:text-slate-600">
-                                System Version: v20260317.01
+                                System Version: v20260425.01
                             </div>
                         </div>
                     </div>
@@ -155,7 +154,6 @@
     </div>
 
     <script>
-        // --- 基本功能區 ---
         function updateIcon() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
@@ -190,7 +188,6 @@
             if (price < 500) return 0.5; if (price < 1000) return 1.0; return 5.0;
         }
 
-        // 新增：處理價格加減按鈕的邏輯
         function changePrice(id, direction) {
             const input = document.getElementById(id);
             const tradeType = document.getElementById('tradeType').value;
@@ -199,13 +196,13 @@
             if (direction > 0) {
                 currentVal += getTickSize(currentVal, tradeType);
             } else {
-                // 處理向下跳檔，0.0001 是為了避開精確邊界判斷
                 currentVal -= getTickSize(currentVal - 0.0001, tradeType);
             }
 
             if (currentVal < 0) currentVal = 0;
             input.value = Math.round(currentVal * 100) / 100;
             calculate();
+            saveSettings(); // 新增：加減按鈕後也自動儲存
         }
 
         function calculate() {
@@ -245,22 +242,35 @@
                 tableBody.innerHTML += createRow(Math.round(p * 100) / 100, i === 0 ? "bg-yellow-100" : "");
             }
         }
+
         function loadSettings() {
+            // 原有設定加載
             document.getElementById('discount').value = localStorage.getItem('stock_discount_v2') || 6;
             document.getElementById('minFee').value = localStorage.getItem('stock_minFee') || 20;
             document.getElementById('tradeType').value = localStorage.getItem('stock_tradeType') || 'stock';
             document.getElementById('feeMethod').value = localStorage.getItem('stock_feeMethod') || 'floor';
+            // 新增：加載價格與股數
+            document.getElementById('buyPrice').value = localStorage.getItem('stock_buyPrice') || "";
+            document.getElementById('targetSellPrice').value = localStorage.getItem('stock_targetSellPrice') || "";
+            document.getElementById('buyShares').value = localStorage.getItem('stock_buyShares') || 1000;
         }
+
         function saveSettings() {
+            // 原有設定儲存
             localStorage.setItem('stock_discount_v2', document.getElementById('discount').value);
             localStorage.setItem('stock_minFee', document.getElementById('minFee').value);
             localStorage.setItem('stock_tradeType', document.getElementById('tradeType').value);
             localStorage.setItem('stock_feeMethod', document.getElementById('feeMethod').value);
+            // 新增：儲存價格與股數
+            localStorage.setItem('stock_buyPrice', document.getElementById('buyPrice').value);
+            localStorage.setItem('stock_targetSellPrice', document.getElementById('targetSellPrice').value);
+            localStorage.setItem('stock_buyShares', document.getElementById('buyShares').value);
+
             const t = document.getElementById('save-toast'); if(t) { t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); }
         }
+
         function clearStorage() { if(confirm('恢復預設？')) { localStorage.clear(); location.reload(); } }
 
-        // --- 核心：自動重整邏輯 ---
         if ('serviceWorker' in navigator) {
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -292,11 +302,12 @@
             }
         }
 
-        document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculate));
-        document.getElementById('discount').addEventListener('change', saveSettings);
-        document.getElementById('minFee').addEventListener('change', saveSettings);
-        document.getElementById('tradeType').addEventListener('change', saveSettings);
-        document.getElementById('feeMethod').addEventListener('change', saveSettings);
+        // 修改：讓所有輸入框變動時都觸發儲存功能
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', calculate);
+            el.addEventListener('change', saveSettings);
+        });
+
         window.onload = () => { loadSettings(); calculate(); checkPwaBanner(); updateIcon(); };
     </script>
 </body>
